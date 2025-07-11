@@ -42,6 +42,15 @@ button:hover {
   background-color: #0056b3;
 }
 
+#clearBtn {
+  margin-left: 1rem;
+  background-color: #dc3545;
+}
+
+#clearBtn:hover {
+  background-color: #c82333;
+}
+
 /* Character Counter */
 #char-count {
   margin-top: 0.5rem;
@@ -57,19 +66,6 @@ button:hover {
   border: 1px solid #b3ffb3;
   border-radius: 4px;
   display: none;
-}
-
-/* Tooltip Styling */
-.tooltip {
-  position: absolute;
-  background: #333;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  display: none;
-  z-index: 10;
-  pointer-events: none;
 }
 
 /* Feedback Display */
@@ -109,4 +105,26 @@ button:hover {
 .tooltip.show {
   display: block;
   opacity: 1;
+}
+/* Focus Styles for Accessibility */
+input:focus,
+textarea:focus,
+button:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feedback-entry {
+  animation: fadeInSlide 0.4s ease;
 }
