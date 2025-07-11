@@ -123,4 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     feedbackDisplay.appendChild(entry);
   });
+  
+// Prevent background click events from reacting to form actions
+  document.querySelector('main').addEventListener('click', () => {
+    console.log('Main background clicked');
+  });
+
+  form.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent clicks inside the form from reaching the background
+  });
 });
