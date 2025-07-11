@@ -34,11 +34,12 @@
         id="comments" 
         name="comments" 
         rows="5" 
-        required 
-        data-tooltip="Write your feedback here..."
+        required
+        maxlength="300"
+        data-tooltip="Write your feedback here (max 300 characters)..."
       ></textarea>
 
-      <p id="char-count">Characters: 0</p>
+      <p id="char-count">Characters: 0/300</p>
 
       <button type="submit">Submit</button>
       <button type="button" id="clearBtn">Clear Form</button>
@@ -50,6 +51,7 @@
     <div id="output"></div>
 
     <h2>Submitted Feedback</h2>
+    <button type="button" id="clearAllBtn">Clear All Feedback</button>
     <div id="feedback-display"></div>
   </main>
 

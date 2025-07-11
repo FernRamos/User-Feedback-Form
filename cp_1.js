@@ -5,11 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const charCount = document.getElementById('char-count');
   const tooltip = document.getElementById('tooltip');
   const clearBtn = document.getElementById('clearBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  const maxChars = 300;
 
   // 1. Character count
-  form.addEventListener('input', (e) => {
+   form.addEventListener('input', (e) => {
     if (e.target.id === 'comments') {
-      charCount.textContent = `Characters: ${e.target.value.length}`;
+      const length = e.target.value.length;
+      charCount.textContent = `Characters: ${length} / ${maxChars}`;
+      charCount.style.color = length > 250 ? 'red' : '#333';
     }
   });
 
@@ -62,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const comments = form.comments.value.trim();
+    const timestamp = new Date().toLocaleString();
 
     if (!name || !email || !comments) {
       [form.name, form.email, form.comments].forEach(field => {
@@ -80,50 +85,61 @@ document.addEventListener('DOMContentLoaded', () => {
     output.style.display = 'block';
     output.innerHTML = `<h3>Thanks for your feedback, ${name}!</h3>`;
 
+    const entry = { name, email, comments, timestamp };
+    const saved = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
+    saved.push(entry);
+    localStorage.setItem('feedbackEntries', JSON.stringify(saved));
+
+    renderEntry(entry, saved.length - 1);
+    form.reset();
+    charCount.textContent = `Characters: 0 / ${maxChars}`;
+  });
+
+  // Render one feedback entry
+  function renderEntry({ name, email, comments, timestamp }, index) {
     const entry = document.createElement('div');
     entry.classList.add('feedback-entry');
     entry.innerHTML = `
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Comments:</strong><br>${comments}</p>
+      <p><em>Submitted on: ${timestamp}</em></p>
+      <p><button class="delete-btn" data-index="${index}">🗑 Delete</button></p>
       <hr/>
     `;
     feedbackDisplay.appendChild(entry);
+  }
 
-    // Save to localStorage
-    const saved = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
-    saved.push({ name, email, comments });
-    localStorage.setItem('feedbackEntries', JSON.stringify(saved));
+  // Load existing feedback from localStorage
+  const storedEntries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
+  storedEntries.forEach((entry, index) => renderEntry(entry, index));
 
-    // Reset
-    form.reset();
-    charCount.textContent = 'Characters: 0';
+  // Delete individual feedback entry
+  feedbackDisplay.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+      const index = parseInt(e.target.dataset.index);
+      let entries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
+      entries.splice(index, 1);
+      localStorage.setItem('feedbackEntries', JSON.stringify(entries));
+      location.reload(); // reload to re-render with correct indexes
+    }
   });
 
-  // Clear form button
+    // Clear form
   clearBtn.addEventListener('click', () => {
     form.reset();
-    charCount.textContent = 'Characters: 0';
+    charCount.textContent = `Characters: 0 / ${maxChars}`;
     output.style.display = 'none';
     [form.name, form.email, form.comments].forEach(field => {
       field.style.borderColor = '#ccc';
     });
   });
-
-  // Load saved feedback
-  const storedEntries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
-  storedEntries.forEach(({ name, email, comments }) => {
-    const entry = document.createElement('div');
-    entry.classList.add('feedback-entry');
-    entry.innerHTML = `
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Comments:</strong><br>${comments}</p>
-      <hr/>
-    `;
-    feedbackDisplay.appendChild(entry);
+    // Clear all feedback
+  clearAllBtn.addEventListener('click', () => {
+    localStorage.removeItem('feedbackEntries');
+    feedbackDisplay.innerHTML = '';
   });
-  
+
 // Prevent background click events from reacting to form actions
   document.querySelector('main').addEventListener('click', () => {
     console.log('Main background clicked');
