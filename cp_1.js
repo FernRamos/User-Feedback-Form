@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tip = e.target.getAttribute('data-tooltip');
       if (tip) {
         tooltip.textContent = tip;
-        tooltip.style.display = 'block';
+        tooltip.classList.add('show');
         tooltip.style.top = `${e.pageY + 10}px`;
         tooltip.style.left = `${e.pageX + 10}px`;
       }
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('mouseout', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      tooltip.style.display = 'none';
+      tooltip.classList.remove('show');;
     }
   });
 
