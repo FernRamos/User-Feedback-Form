@@ -7,9 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clearBtn');
   const clearAllBtn = document.getElementById('clearAllBtn');
   const maxChars = 300;
+  let editIndex = null;
 
-  // 1. Character count
-   form.addEventListener('input', (e) => {
+  // Character count
+  form.addEventListener('input', (e) => {
     if (e.target.id === 'comments') {
       const length = e.target.value.length;
       charCount.textContent = `Characters: ${length} / ${maxChars}`;
@@ -17,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 2. Tooltip (mouse)
+  // Tooltip on mouse
   form.addEventListener('mouseover', (e) => {
     if (e.target.matches('input, textarea')) {
       const tip = e.target.getAttribute('data-tooltip');
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 3. Tooltip (keyboard focus)
+  // Tooltip on keyboard focus
   form.addEventListener('focusin', (e) => {
     if (e.target.matches('input, textarea')) {
       const tip = e.target.getAttribute('data-tooltip');
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Submit form
-  form.addEventListener('submit', function (e) {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const name = form.name.value.trim();
@@ -82,20 +83,30 @@ document.addEventListener('DOMContentLoaded', () => {
       field.style.borderColor = '#ccc';
     });
 
+    const entry = { name, email, comments, timestamp };
+    let entries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
+
+    if (editIndex !== null) {
+      entries[editIndex] = entry;
+      editIndex = null;
+    } else {
+      entries.push(entry);
+    }
+
+    localStorage.setItem('feedbackEntries', JSON.stringify(entries));
+
+    // Re-render entries
+    feedbackDisplay.innerHTML = '';
+    entries.forEach((entry, index) => renderEntry(entry, index));
+
     output.style.display = 'block';
     output.innerHTML = `<h3>Thanks for your feedback, ${name}!</h3>`;
 
-    const entry = { name, email, comments, timestamp };
-    const saved = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
-    saved.push(entry);
-    localStorage.setItem('feedbackEntries', JSON.stringify(saved));
-
-    renderEntry(entry, saved.length - 1);
     form.reset();
     charCount.textContent = `Characters: 0 / ${maxChars}`;
   });
 
-  // Render one feedback entry
+  // Render feedback entry
   function renderEntry({ name, email, comments, timestamp }, index) {
     const entry = document.createElement('div');
     entry.classList.add('feedback-entry');
@@ -104,48 +115,82 @@ document.addEventListener('DOMContentLoaded', () => {
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Comments:</strong><br>${comments}</p>
       <p><em>Submitted on: ${timestamp}</em></p>
-      <p><button class="delete-btn" data-index="${index}">🗑 Delete</button></p>
+      <p>
+        <button class="edit-btn" data-index="${index}">✏️ Edit</button>
+        <button class="delete-btn" data-index="${index}">🗑 Delete</button>
+      </p>
       <hr/>
     `;
     feedbackDisplay.appendChild(entry);
   }
 
-  // Load existing feedback from localStorage
+  // Load existing feedback on page load
   const storedEntries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
   storedEntries.forEach((entry, index) => renderEntry(entry, index));
 
-  // Delete individual feedback entry
+  // Event delegation for edit/delete
   feedbackDisplay.addEventListener('click', (e) => {
+    const index = parseInt(e.target.dataset.index);
+    if (isNaN(index)) return;
+
+    let entries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
+
+    if (e.target.classList.contains('edit-btn')) {
+      const entry = entries[index];
+      form.name.value = entry.name;
+      form.email.value = entry.email;
+      form.comments.value = entry.comments;
+      charCount.textContent = `Characters: ${entry.comments.length} / ${maxChars}`;
+      editIndex = index;
+      output.style.display = 'none';
+    }
+
     if (e.target.classList.contains('delete-btn')) {
-      const index = parseInt(e.target.dataset.index);
-      let entries = JSON.parse(localStorage.getItem('feedbackEntries')) || [];
       entries.splice(index, 1);
       localStorage.setItem('feedbackEntries', JSON.stringify(entries));
-      location.reload(); // reload to re-render with correct indexes
+      feedbackDisplay.innerHTML = '';
+      entries.forEach((entry, i) => renderEntry(entry, i));
+      if (editIndex !== null && editIndex === index) editIndex = null;
     }
   });
 
-    // Clear form
+  // Clear form
   clearBtn.addEventListener('click', () => {
     form.reset();
     charCount.textContent = `Characters: 0 / ${maxChars}`;
     output.style.display = 'none';
+    editIndex = null;
     [form.name, form.email, form.comments].forEach(field => {
       field.style.borderColor = '#ccc';
     });
   });
-    // Clear all feedback
+
+  // Clear all feedback
   clearAllBtn.addEventListener('click', () => {
     localStorage.removeItem('feedbackEntries');
     feedbackDisplay.innerHTML = '';
+    editIndex = null;
   });
 
-// Prevent background click events from reacting to form actions
+  // Prevent background click interference
   document.querySelector('main').addEventListener('click', () => {
     console.log('Main background clicked');
   });
 
   form.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent clicks inside the form from reaching the background
+    e.stopPropagation();
   });
+  // ✅ Dark Mode Toggle
+  const toggleBtn = document.getElementById('toggleDark');
+  if (toggleBtn) {
+    // Optional: Load saved preference
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+  }
 });
